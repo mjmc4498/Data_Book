@@ -35,10 +35,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // --- Carga y actualización del perfil de usuario ---
     const loadUserProfile = () => {
-        const profile = window.dataManager.getData('user_profile')[0] || { name: 'Usuario' };
+        const defaultAvatar = 'https://i.pravatar.cc/30?u=a042581f4e29026704d';
+        const profile = window.dataManager.getData('user_profile')[0] || { name: 'Usuario', avatarUrl: defaultAvatar };
+
         const navbarUserName = document.getElementById('navbar-user-name');
         if (navbarUserName) {
-            navbarUserName.textContent = profile.name;
+            navbarUserName.textContent = profile.name || 'Usuario';
+        }
+
+        const navbarAvatar = document.getElementById('navbar-avatar');
+        if (navbarAvatar) {
+            navbarAvatar.src = profile.avatarUrl || defaultAvatar;
         }
     };
 

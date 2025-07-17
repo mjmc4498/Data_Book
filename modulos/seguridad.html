@@ -11,43 +11,73 @@
 <div class="container-fluid">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="../index.html" target="_top">Inicio</a></li>
             <li class="breadcrumb-item active" aria-current="page">Seguridad y Perfilamiento</li>
         </ol>
     </nav>
-    <h1 class="h2">Catálogo de Roles y Permisos</h1>
 
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="roles-tab" data-bs-toggle="tab" data-bs-target="#roles" type="button" role="tab" aria-controls="roles" aria-selected="true">Roles</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="audit-tab" data-bs-toggle="tab" data-bs-target="#audit" type="button" role="tab" aria-controls="audit" aria-selected="false">Auditoría de Accesos</button>
-      </li>
-    </ul>
-    <div class="tab-content" id="myTabContent">
-      <div class="tab-pane fade show active" id="roles" role="tabpanel" aria-labelledby="roles-tab">
-        <div class="table-responsive mt-3">
-            <table class="table">
-                <thead>
-                    <tr><th>Rol</th><th>Descripción</th><th>Permisos</th><th>Acciones</th></tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Analista de Datos</td>
-                        <td>Acceso de lectura a datos no sensibles.</td>
-                        <td><code>SELECT</code> en <code>schema_public</code></td>
-                        <td><button class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></button></td>
-                    </tr>
-                </tbody>
-            </table>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h2">Catálogo de Roles y Permisos</h1>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#roleModal">
+            <i class="bi bi-plus-circle me-2"></i> Añadir Rol
+        </button>
+    </div>
+
+    <!-- Tabla de Roles -->
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Rol</th>
+                    <th>Descripción</th>
+                    <th>Permisos Clave</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="roles-table-body">
+                <!-- Filas generadas por JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal para Añadir/Editar Rol -->
+    <div class="modal fade" id="roleModal" tabindex="-1" aria-labelledby="roleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="roleModalLabel">Añadir Nuevo Rol</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="role-form" class="needs-validation" novalidate>
+                        <input type="hidden" id="role-id">
+                        <div class="mb-3">
+                            <label for="role-name" class="form-label">Nombre del Rol</label>
+                            <input type="text" class="form-control" id="role-name" required>
+                            <div class="invalid-feedback">El nombre es obligatorio.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="role-description" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="role-description" rows="2" required></textarea>
+                            <div class="invalid-feedback">La descripción es obligatoria.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="role-permissions" class="form-label">Permisos</label>
+                            <textarea class="form-control" id="role-permissions" rows="4" placeholder="Describa los permisos. Ej: LECTURA en CRM.CLIENTES, ESCRITURA en VENTAS.PRONOSTICOS" required></textarea>
+                            <div class="invalid-feedback">Debe especificar al menos un permiso.</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary" form="role-form">Guardar Rol</button>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="tab-pane fade" id="audit" role="tabpanel" aria-labelledby="audit-tab">
-        <p class="mt-3">Registros de auditoría de acceso a datos...</p>
-      </div>
     </div>
 </div>
+
+<script src="../js/seguridad.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

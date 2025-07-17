@@ -20,9 +20,12 @@
 
     <div class="row">
         <div class="col-md-4 text-center">
-            <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" class="img-fluid rounded-circle mb-3" alt="Avatar de usuario">
+            <img id="profile-avatar" src="https://i.pravatar.cc/150?u=a042581f4e29026704d" class="img-fluid rounded-circle mb-3 shadow-sm" alt="Avatar de usuario" style="width: 150px; height: 150px; object-fit: cover;">
             <h4 id="profile-name-display">Usuario de Prueba</h4>
             <p class="text-muted" id="profile-role-display">Analista de Datos</p>
+            <div id="social-links-display">
+                <!-- Links de redes sociales generados por JS -->
+            </div>
         </div>
         <div class="col-md-8">
             <div class="card">
@@ -31,25 +34,47 @@
                 </div>
                 <div class="card-body">
                     <form id="profile-form">
-                        <div class="mb-3">
-                            <label for="profile-name" class="form-label">Nombre de Usuario</label>
-                            <input type="text" class="form-control" id="profile-name" placeholder="Introduce tu nombre">
-                        </div>
-                        <div class="mb-3">
-                            <label for="profile-role" class="form-label">Rol</label>
-                            <select class="form-select" id="profile-role">
-                                <option value="Analista de Datos">Analista de Datos</option>
-                                <option value="Data Steward">Data Steward</option>
-                                <option value="Oficial de Privacidad">Oficial de Privacidad</option>
-                                <option value="Administrador">Administrador</option>
-                            </select>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="profile-name" class="form-label">Nombre de Usuario</label>
+                                <input type="text" class="form-control" id="profile-name" placeholder="Tu nombre completo">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="profile-role" class="form-label">Rol</label>
+                                <select class="form-select" id="profile-role">
+                                    <option value="Analista de Datos">Analista de Datos</option>
+                                    <option value="Data Steward">Data Steward</option>
+                                    <option value="Oficial de Privacidad">Oficial de Privacidad</option>
+                                    <option value="Administrador">Administrador</option>
+                                </select>
+                            </div>
                         </div>
                          <div class="mb-3">
-                            <label for="profile-email" class="form-label">Correo Electrónico</label>
-                            <input type="email" class="form-control" id="profile-email" value="usuario@example.com" disabled>
-                            <small class="form-text text-muted">El correo electrónico no se puede cambiar.</small>
+                            <label for="profile-avatar-url" class="form-label">URL de la Foto de Perfil</label>
+                            <input type="url" class="form-control" id="profile-avatar-url" placeholder="https://ejemplo.com/tu-foto.jpg">
                         </div>
-                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="profile-birthdate" class="form-label">Fecha de Nacimiento</label>
+                                <input type="date" class="form-control" id="profile-birthdate">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="profile-phone" class="form-label">Número de Teléfono</label>
+                                <input type="tel" class="form-control" id="profile-phone" placeholder="+34 123 456 789">
+                            </div>
+                        </div>
+                        <hr>
+                        <h5 class="h6">Redes Sociales</h5>
+                         <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="bi bi-linkedin"></i></span>
+                            <input type="url" class="form-control" id="profile-linkedin" placeholder="URL de tu perfil de LinkedIn">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="bi bi-twitter"></i></span>
+                            <input type="url" class="form-control" id="profile-twitter" placeholder="URL de tu perfil de Twitter/X">
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">Guardar Cambios</button>
                     </form>
                 </div>
             </div>

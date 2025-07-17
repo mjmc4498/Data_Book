@@ -11,33 +11,61 @@
 <div class="container-fluid">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="../index.html" target="_top">Inicio</a></li>
             <li class="breadcrumb-item active" aria-current="page">Gobierno de Metadatos</li>
         </ol>
     </nav>
-    <h1 class="h2">Flujos de Aprobación</h1>
-    <p>Gestión de flujos de trabajo para la aprobación de metadatos.</p>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h2">Flujos de Aprobación</h1>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#flowModal">
+            <i class="bi bi-plus-circle me-2"></i> Añadir Flujo
+        </button>
+    </div>
 
-    <div class="accordion" id="approvalAccordion">
-      <div class="accordion-item">
-        <h2 class="accordion-header" id="headingOne">
-          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-            Flujo de Aprobación de Términos de Negocio
-          </button>
-        </h2>
-        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#approvalAccordion">
-          <div class="accordion-body">
-            <strong>Pasos:</strong> 1. Creación por Analista -> 2. Revisión por Data Steward -> 3. Aprobación por Owner del Dominio.
-            <hr>
-            <h6>Tareas Pendientes:</h6>
-            <ul>
-                <li>Aprobar término "Churn Rate" - Pendiente de Data Steward.</li>
-            </ul>
-          </div>
+    <div class="accordion" id="flows-accordion">
+        <!-- Flujos generados por JS -->
+    </div>
+    <p id="no-flows-message" class="text-center text-muted mt-4 d-none">No hay flujos de aprobación definidos.</p>
+
+
+    <!-- Modal para Añadir/Editar Flujo -->
+    <div class="modal fade" id="flowModal" tabindex="-1" aria-labelledby="flowModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="flowModalLabel">Añadir Nuevo Flujo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="flow-form" class="needs-validation" novalidate>
+                        <input type="hidden" id="flow-id">
+                        <div class="mb-3">
+                            <label for="flow-name" class="form-label">Nombre del Flujo</label>
+                            <input type="text" class="form-control" id="flow-name" placeholder="Ej: Aprobación de Término de Negocio" required>
+                            <div class="invalid-feedback">El nombre es obligatorio.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="flow-description" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="flow-description" rows="2" required></textarea>
+                            <div class="invalid-feedback">La descripción es obligatoria.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="flow-steps" class="form-label">Pasos del Flujo (uno por línea)</label>
+                            <textarea class="form-control" id="flow-steps" rows="4" placeholder="1. Creación por Analista&#10;2. Revisión por Data Steward&#10;3. Aprobación por Owner" required></textarea>
+                            <div class="invalid-feedback">Debe definir al menos un paso.</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary" form="flow-form">Guardar Flujo</button>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 </div>
+
+<script src="../js/gobierno_metadatos.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
