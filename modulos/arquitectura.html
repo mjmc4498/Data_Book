@@ -57,6 +57,29 @@
                     </p>
                 </div>
             </div>
+
+            <!-- Panel de Detalles del Nodo -->
+            <div id="node-details-panel" class="card mt-3 d-none">
+                <div class="card-body">
+                    <h5 class="card-title">Detalles de: <span id="details-node-name" class="text-primary"></span></h5>
+                    <p class="mb-2"><strong>Tipo:</strong> <span id="details-node-type"></span></p>
+                    <hr>
+                    <h6>Añadir Conexión de Salida</h6>
+                    <form id="add-link-form">
+                        <div class="input-group">
+                            <select id="link-to-select" class="form-select"></select>
+                            <button class="btn btn-outline-primary" type="submit">Conectar</button>
+                        </div>
+                    </form>
+                    <hr>
+                    <h6>Conexiones Existentes</h6>
+                    <p class="mb-1"><strong>Fuentes (Entrada):</strong></p>
+                    <ul id="details-links-in" class="list-unstyled small ps-2"></ul>
+                    <p class="mb-1 mt-2"><strong>Destinos (Salida):</strong></p>
+                    <ul id="details-links-out" class="list-unstyled small ps-2"></ul>
+                </div>
+            </div>
+
             <div class="card mt-3">
                 <div class="card-body">
                      <h5 class="card-title">Exportar</h5>
