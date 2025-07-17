@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const themeSwitch = document.getElementById("theme-switch");
     if(themeSwitch) {
-        // Cargar el tema guardado en localStorage
         const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : 'light';
         document.documentElement.setAttribute('data-bs-theme', currentTheme);
         if (currentTheme === 'dark') {
@@ -22,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const isChecked = e.target.checked;
             const theme = isChecked ? "dark" : "light";
             document.documentElement.setAttribute("data-bs-theme", theme);
-            localStorage.setItem('theme', theme); // Guardar el tema
+            localStorage.setItem('theme', theme);
             updateThemeIcon(isChecked);
         });
     }
@@ -34,57 +33,42 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    // --- Carga y actualización del perfil de usuario ---
+    const loadUserProfile = () => {
+        const profile = window.dataManager.getData('user_profile')[0] || { name: 'Usuario' };
+        const navbarUserName = document.getElementById('navbar-user-name');
+        if (navbarUserName) {
+            navbarUserName.textContent = profile.name;
+        }
+    };
+
+    window.updateNavbarUser = loadUserProfile; // Exponer la función para ser llamada desde iframes
+
     // --- Utilidades para la gestión de datos (Simulación con localStorage) ---
     window.dataManager = {
-        /**
-         * Obtiene los datos de una clave específica del localStorage.
-         * @param {string} key - La clave para los datos (ej. 'glosario_terminos').
-         * @returns {Array} - Un array de objetos.
-         */
         getData: function(key) {
             return JSON.parse(localStorage.getItem(key)) || [];
         },
-
-        /**
-         * Guarda un array de datos en una clave específica del localStorage.
-         * @param {string} key - La clave para los datos.
-         * @param {Array} data - El array de datos a guardar.
-         */
         saveData: function(key, data) {
             localStorage.setItem(key, JSON.stringify(data));
         },
-
-        /**
-         * Añade un nuevo item a un array existente en localStorage.
-         * @param {string} key - La clave para los datos.
-         * @param {object} item - El objeto a añadir.
-         */
         addItem: function(key, item) {
             const data = this.getData(key);
-            item.id = new Date().getTime(); // Asignar un ID único basado en el timestamp
+            item.id = new Date().getTime();
             data.push(item);
             this.saveData(key, data);
         },
-
-        /**
-         * Actualiza un item existente en un array de localStorage.
-         * @param {string} key - La clave para los datos.
-         * @param {object} updatedItem - El objeto con los datos actualizados (debe incluir el id).
-         */
         updateItem: function(key, updatedItem) {
             let data = this.getData(key);
             const index = data.findIndex(item => item.id == updatedItem.id);
             if (index !== -1) {
                 data[index] = { ...data[index], ...updatedItem };
                 this.saveData(key, data);
+            } else {
+                // Si no existe, lo creamos (útil para perfil y config)
+                this.addItem(key, updatedItem);
             }
         },
-
-        /**
-         * Elimina un item de un array en localStorage por su ID.
-         * @param {string} key - La clave para los datos.
-         * @param {number} id - El ID del item a eliminar.
-         */
         deleteItem: function(key, id) {
             let data = this.getData(key);
             data = data.filter(item => item.id != id);
@@ -94,11 +78,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // --- Utilidades Generales de UI ---
     window.uiManager = {
-        /**
-         * Muestra una notificación toast de Bootstrap.
-         * @param {string} message - El mensaje a mostrar.
-         * @param {string} type - 'success', 'danger', 'warning', 'info'.
-         */
         showToast: function(message, type = 'success') {
             const toastContainer = document.getElementById('toast-container');
             if (!toastContainer) {
@@ -125,10 +104,6 @@ document.addEventListener("DOMContentLoaded", function() {
             toast.show();
             toastElement.addEventListener('hidden.bs.toast', () => toastElement.remove());
         },
-
-        /**
-         * Inicializa los tooltips de Bootstrap en la página actual.
-         */
         initializeTooltips: function() {
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -136,4 +111,7 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         }
     };
+
+    // --- Inicialización ---
+    loadUserProfile();
 });

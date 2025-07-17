@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="../index.html" target="_top">Inicio</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Configuración</li>
+        </ol>
+    </nav>
+
+    <h1 class="h2 mb-4">Configuración</h1>
+
+    <div class="card">
+        <div class="card-header">
+            Preferencias de la Aplicación
+        </div>
+        <div class="card-body">
+            <form id="settings-form">
+                <div class="mb-3">
+                    <label for="items-per-page" class="form-label">Resultados por página</label>
+                    <select class="form-select" id="items-per-page" style="max-width: 200px;">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                    </select>
+                    <small class="form-text text-muted">Número de items a mostrar en las tablas de resultados.</small>
+                </div>
+                <hr>
+                <div class="mb-3">
+                    <h5>Notificaciones</h5>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="email-notifications">
+                        <label class="form-check-label" for="email-notifications">Recibir notificaciones por correo electrónico</label>
+                    </div>
+                     <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="push-notifications" disabled>
+                        <label class="form-check-label" for="push-notifications">Activar notificaciones push (Próximamente)</label>
+                    </div>
+                </div>
+                <hr>
+                <div class="mb-3">
+                    <h5>Accesibilidad</h5>
+                     <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="high-contrast">
+                        <label class="form-check-label" for="high-contrast">Activar modo de alto contraste</label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Guardar Configuración</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="../js/configuracion.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
