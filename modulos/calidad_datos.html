@@ -66,6 +66,36 @@
         </div>
     </div>
 
+    <!-- Filtros -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form id="filter-form" class="row g-3">
+                <div class="col-md-5">
+                    <input type="text" class="form-control" id="search-input" placeholder="Buscar por activo o descripción...">
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="dimension-filter">
+                        <option value="">Todas las dimensiones</option>
+                        <option value="Completitud">Completitud</option>
+                        <option value="Validez">Validez</option>
+                        <option value="Unicidad">Unicidad</option>
+                        <option value="Consistencia">Consistencia</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" id="status-filter">
+                        <option value="">Todos los estados</option>
+                        <option value="Activa">Activa</option>
+                        <option value="Inactiva">Inactiva</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="reset" class="btn btn-outline-secondary w-100">Limpiar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Tabla de Reglas -->
     <div class="table-responsive">
         <table class="table table-hover">

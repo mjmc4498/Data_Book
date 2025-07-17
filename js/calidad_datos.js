@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ruleModal = new bootstrap.Modal(document.getElementById('ruleModal'));
     const ruleModalLabel = document.getElementById('ruleModalLabel');
     const tableBody = document.getElementById('rules-table-body');
+    const filterForm = document.getElementById('filter-form');
 
     const STORAGE_KEY = 'calidad_reglas';
 
@@ -15,7 +16,19 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const renderTable = () => {
-        const rules = dataManager.getData(STORAGE_KEY);
+        const filters = getFilters();
+        let rules = dataManager.getData(STORAGE_KEY);
+
+        // Aplicar filtros
+        rules = rules.filter(rule => {
+            const searchMatch = filters.search === '' ||
+                rule.asset.toLowerCase().includes(filters.search) ||
+                rule.description.toLowerCase().includes(filters.search);
+            const dimensionMatch = filters.dimension === '' || rule.dimension === filters.dimension;
+            const statusMatch = filters.status === '' || rule.status === filters.status;
+            return searchMatch && dimensionMatch && statusMatch;
+        });
+
         tableBody.innerHTML = '';
 
         if (rules.length === 0) {
@@ -128,6 +141,21 @@ document.addEventListener('DOMContentLoaded', () => {
             modalTrigger.show(editButton);
         }
     });
+
+    // --- Lógica de Filtros ---
+    const getFilters = () => {
+        return {
+            search: document.getElementById('search-input').value.toLowerCase().trim(),
+            dimension: document.getElementById('dimension-filter').value,
+            status: document.getElementById('status-filter').value,
+        };
+    };
+
+    filterForm.addEventListener('input', renderTable);
+    filterForm.addEventListener('reset', () => {
+        setTimeout(renderTable, 0); // Pequeño delay para asegurar que el form se resetea antes de renderizar
+    });
+
 
     // --- Inicialización ---
     render();
