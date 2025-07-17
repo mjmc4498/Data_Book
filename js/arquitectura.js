@@ -98,18 +98,30 @@ document.addEventListener('DOMContentLoaded', () => {
         linksInList.innerHTML = '';
         selectedNode.findLinksInto().each(link => {
             const li = document.createElement('li');
-            li.textContent = link.fromNode.data.text;
+            li.className = 'd-flex justify-content-between align-items-center mb-1';
+            li.innerHTML = `
+                <span><i class="bi bi-arrow-right-short"></i> ${link.fromNode.data.text}</span>
+                <button class="btn btn-xs btn-outline-danger delete-link-btn" data-from="${link.data.from}" data-to="${link.data.to}">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `;
             linksInList.appendChild(li);
         });
-        if (linksInList.innerHTML === '') linksInList.innerHTML = '<li>Ninguna</li>';
+        if (linksInList.innerHTML === '') linksInList.innerHTML = '<li class="text-muted small">Ninguna</li>';
 
         linksOutList.innerHTML = '';
         selectedNode.findLinksOutOf().each(link => {
             const li = document.createElement('li');
-            li.textContent = link.toNode.data.text;
+            li.className = 'd-flex justify-content-between align-items-center mb-1';
+            li.innerHTML = `
+                <span><i class="bi bi-arrow-left-short"></i> ${link.toNode.data.text}</span>
+                <button class="btn btn-xs btn-outline-danger delete-link-btn" data-from="${link.data.from}" data-to="${link.data.to}">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `;
             linksOutList.appendChild(li);
         });
-        if (linksOutList.innerHTML === '') linksOutList.innerHTML = '<li>Ninguna</li>';
+        if (linksOutList.innerHTML === '') linksOutList.innerHTML = '<li class="text-muted small">Ninguna</li>';
     }
 
     addLinkForm.addEventListener('submit', e => {
@@ -118,8 +130,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetKey = linkToSelect.value;
 
         if (selectedNode && targetKey) {
-            myDiagram.model.addLinkData({ from: selectedNode.data.key, to: targetKey });
-            updateDetailsPanel(); // Refrescar el panel
+            // Evitar enlaces duplicados
+            const linkExists = myDiagram.model.linkDataArray.some(
+                link => link.from === selectedNode.data.key && link.to == targetKey
+            );
+            if (!linkExists) {
+                myDiagram.model.addLinkData({ from: selectedNode.data.key, to: targetKey });
+                updateDetailsPanel(); // Refrescar el panel
+            } else {
+                window.parent.uiManager.showToast('Esta conexión ya existe.', 'warning');
+            }
+        }
+    });
+
+    detailsPanel.addEventListener('click', e => {
+        const deleteBtn = e.target.closest('.delete-link-btn');
+        if (deleteBtn) {
+            const fromKey = deleteBtn.dataset.from;
+            const toKey = deleteBtn.dataset.to;
+            const linkData = myDiagram.model.findLinkData(fromKey, toKey);
+            if (linkData) {
+                myDiagram.model.removeLinkData(linkData);
+                updateDetailsPanel(); // Refrescar el panel
+            }
         }
     });
 
