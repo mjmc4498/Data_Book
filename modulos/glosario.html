@@ -11,14 +11,14 @@
 <div class="container-fluid">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="../index.html" target="_top">Inicio</a></li>
             <li class="breadcrumb-item active" aria-current="page">Glosario de Negocio</li>
         </ol>
     </nav>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h2">Glosario de Negocio</h1>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTermModal">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#termModal">
             <i class="bi bi-plus-circle me-2"></i> Añadir Nuevo Término
         </button>
     </div>
@@ -26,30 +26,32 @@
     <!-- Filtros -->
     <div class="card mb-3">
         <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <input type="text" class="form-control" placeholder="Buscar por nombre...">
+            <form id="filter-form" class="row g-3">
+                <div class="col-md-5">
+                    <input type="text" class="form-control" id="search-input" placeholder="Buscar por nombre o definición...">
                 </div>
                 <div class="col-md-3">
-                    <select class="form-select">
-                        <option selected>Filtrar por estado...</option>
-                        <option value="1">Aprobado</option>
-                        <option value="2">Pendiente</option>
-                        <option value="3">Rechazado</option>
+                    <select class="form-select" id="status-filter">
+                        <option value="">Todos los estados</option>
+                        <option value="Aprobado">Aprobado</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Rechazado">Rechazado</option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <select class="form-select">
-                        <option selected>Filtrar por dominio...</option>
-                        <option value="1">Ventas</option>
-                        <option value="2">Marketing</option>
-                        <option value="3">Finanzas</option>
+                     <select class="form-select" id="domain-filter">
+                        <option value="">Todos los dominios</option>
+                        <option value="Ventas">Ventas</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Finanzas">Finanzas</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <button class="btn btn-outline-secondary w-100">Filtrar</button>
+                <div class="col-md-1">
+                    <button type="reset" class="btn btn-outline-secondary w-100" id="reset-filters">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 
@@ -66,76 +68,70 @@
                     <th scope="col">Acciones</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td>Cliente</td>
-                    <td>Persona o empresa que adquiere bienes o servicios.</td>
-                    <td>Ventas</td>
-                    <td><span class="badge bg-success">Aprobado</span></td>
-                    <td>2.1</td>
-                    <td>
-                        <button class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="Ver Detalles"><i class="bi bi-eye"></i></button>
-                        <button class="btn btn-sm btn-warning" data-bs-toggle="tooltip" title="Editar"><i class="bi bi-pencil"></i></button>
-                        <button class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Eliminar"><i class="bi bi-trash"></i></button>
-                    </td>
-                </tr>
-                <!-- más filas... -->
+            <tbody id="terms-table-body">
+                <!-- Las filas se generarán dinámicamente -->
             </tbody>
         </table>
+        <p id="no-data-message" class="text-center text-muted d-none">No hay términos registrados. ¡Añade uno!</p>
     </div>
 
-    <!-- Modal para Añadir Término -->
-    <div class="modal fade" id="addTermModal" tabindex="-1" aria-labelledby="addTermModalLabel" aria-hidden="true">
+    <!-- Modal para Añadir/Editar Término -->
+    <div class="modal fade" id="termModal" tabindex="-1" aria-labelledby="termModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addTermModalLabel">Añadir Nuevo Término</h5>
+                    <h5 class="modal-title" id="termModalLabel">Añadir Nuevo Término</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form>
+                    <form id="term-form" class="needs-validation" novalidate>
+                        <input type="hidden" id="term-id">
                         <div class="mb-3">
-                            <label for="termName" class="form-label">Nombre del Término</label>
-                            <input type="text" class="form-control" id="termName">
+                            <label for="term-name" class="form-label">Nombre del Término</label>
+                            <input type="text" class="form-control" id="term-name" required>
+                            <div class="invalid-feedback">Por favor, introduce un nombre para el término.</div>
                         </div>
                         <div class="mb-3">
-                            <label for="termDefinition" class="form-label">Definición</label>
-                            <textarea class="form-control" id="termDefinition" rows="3"></textarea>
+                            <label for="term-definition" class="form-label">Definición</label>
+                            <textarea class="form-control" id="term-definition" rows="3" required></textarea>
+                            <div class="invalid-feedback">Por favor, introduce una definición.</div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="termDomain" class="form-label">Dominio</label>
-                                <select class="form-select" id="termDomain">
-                                    <option selected>Seleccionar...</option>
-                                    <option value="1">Ventas</option>
-                                    <option value="2">Marketing</option>
+                            <div class="col-md-4 mb-3">
+                                <label for="term-domain" class="form-label">Dominio</label>
+                                <select class="form-select" id="term-domain" required>
+                                    <option value="" disabled selected>Seleccionar...</option>
+                                    <option value="Ventas">Ventas</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Finanzas">Finanzas</option>
+                                </select>
+                                <div class="invalid-feedback">Por favor, selecciona un dominio.</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="term-status" class="form-label">Estado</label>
+                                <select class="form-select" id="term-status" required>
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="Aprobado">Aprobado</option>
+                                    <option value="Rechazado">Rechazado</option>
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="termStatus" class="form-label">Estado</label>
-                                <select class="form-select" id="termStatus">
-                                    <option value="1">Pendiente</option>
-                                    <option value="2">Aprobado</option>
-                                </select>
+                            <div class="col-md-4 mb-3">
+                                <label for="term-version" class="form-label">Versión</label>
+                                <input type="text" class="form-control" id="term-version" value="1.0" required>
                             </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-primary">Guardar Término</button>
+                    <button type="submit" class="btn btn-primary" form="term-form">Guardar Cambios</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script src="../js/glosario.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // Re-initialize tooltips for this iframe content
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-</script>
 </body>
 </html>

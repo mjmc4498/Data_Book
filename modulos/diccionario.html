@@ -11,14 +11,14 @@
 <div class="container-fluid">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="../index.html" target="_top">Inicio</a></li>
             <li class="breadcrumb-item active" aria-current="page">Diccionario de Datos</li>
         </ol>
     </nav>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h2">Diccionario de Datos</h1>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAssetModal">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#assetModal">
             <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo Activo
         </button>
     </div>
@@ -26,30 +26,31 @@
     <!-- Filtros -->
     <div class="card mb-3">
         <div class="card-body">
-            <div class="row g-3">
+             <form id="filter-form" class="row g-3">
                 <div class="col-md-4">
-                    <input type="text" class="form-control" placeholder="Buscar por tabla o campo...">
+                    <input type="text" class="form-control" id="search-input" placeholder="Buscar por tabla o campo...">
                 </div>
                 <div class="col-md-3">
-                    <select class="form-select">
-                        <option selected>Filtrar por sistema fuente...</option>
-                        <option value="1">ERP</option>
-                        <option value="2">CRM</option>
-                        <option value="3">Data Warehouse</option>
+                    <select class="form-select" id="system-filter">
+                        <option value="">Todos los sistemas</option>
+                        <option value="ERP">ERP</option>
+                        <option value="CRM">CRM</option>
+                        <option value="Data Warehouse">Data Warehouse</option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                     <select class="form-select">
-                        <option selected>Filtrar por tipo de dato...</option>
-                        <option value="1">VARCHAR</option>
-                        <option value="2">INTEGER</option>
-                        <option value="3">DATE</option>
+                     <select class="form-select" id="type-filter">
+                        <option value="">Todos los tipos</option>
+                        <option value="VARCHAR">VARCHAR</option>
+                        <option value="INTEGER">INTEGER</option>
+                        <option value="DATE">DATE</option>
+                         <option value="BOOLEAN">BOOLEAN</option>
                     </select>
                 </div>
                  <div class="col-md-2">
-                    <button class="btn btn-outline-secondary w-100">Filtrar</button>
+                    <button type="reset" class="btn btn-outline-secondary w-100"><i class="bi bi-x-lg"></i></button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 
@@ -62,35 +63,79 @@
                     <th scope="col">Nombre Tabla</th>
                     <th scope="col">Nombre Campo</th>
                     <th scope="col">Tipo de Dato</th>
-                    <th scope="col">Término de Negocio Asociado</th>
+                    <th scope="col">Término de Negocio</th>
                     <th scope="col">Acciones</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td>CRM</td>
-                    <td>CLIENTES</td>
-                    <td>ID_CLIENTE</td>
-                    <td>INTEGER</td>
-                    <td><a href="#">Cliente</a></td>
-                    <td>
-                        <button class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="Ver Linaje"><i class="bi bi-diagram-3"></i></button>
-                        <button class="btn btn-sm btn-warning" data-bs-toggle="tooltip" title="Editar Mapeo"><i class="bi bi-pencil"></i></button>
-                    </td>
-                </tr>
-                <!-- más filas... -->
+            <tbody id="assets-table-body">
+                <!-- Filas generadas dinámicamente -->
             </tbody>
         </table>
     </div>
 
+    <!-- Modal para Añadir/Editar Activo -->
+    <div class="modal fade" id="assetModal" tabindex="-1" aria-labelledby="assetModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="assetModalLabel">Registrar Nuevo Activo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="asset-form" class="needs-validation" novalidate>
+                        <input type="hidden" id="asset-id">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="asset-system" class="form-label">Sistema Fuente</label>
+                                <select class="form-select" id="asset-system" required>
+                                     <option value="" disabled selected>Seleccionar...</option>
+                                     <option value="ERP">ERP</option>
+                                     <option value="CRM">CRM</option>
+                                     <option value="Data Warehouse">Data Warehouse</option>
+                                </select>
+                                <div class="invalid-feedback">Selecciona un sistema.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="asset-table" class="form-label">Nombre de la Tabla</label>
+                                <input type="text" class="form-control" id="asset-table" required>
+                                <div class="invalid-feedback">Introduce un nombre de tabla.</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                             <div class="col-md-6 mb-3">
+                                <label for="asset-field" class="form-label">Nombre del Campo</label>
+                                <input type="text" class="form-control" id="asset-field" required>
+                                <div class="invalid-feedback">Introduce un nombre de campo.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="asset-type" class="form-label">Tipo de Dato</label>
+                                <select class="form-select" id="asset-type" required>
+                                     <option value="" disabled selected>Seleccionar...</option>
+                                     <option value="VARCHAR">VARCHAR</option>
+                                     <option value="INTEGER">INTEGER</option>
+                                     <option value="DATE">DATE</option>
+                                     <option value="BOOLEAN">BOOLEAN</option>
+                                </select>
+                                <div class="invalid-feedback">Selecciona un tipo de dato.</div>
+                            </div>
+                        </div>
+                         <div class="mb-3">
+                            <label for="asset-business-term" class="form-label">Término de Negocio Asociado</label>
+                            <input type="text" class="form-control" id="asset-business-term">
+                            <small class="form-text text-muted">Opcional. Mapea este campo a un término del Glosario de Negocio.</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary" form="asset-form">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
+<script src="../js/diccionario.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // Re-initialize tooltips for this iframe content
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-</script>
 </body>
 </html>

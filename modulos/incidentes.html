@@ -11,29 +11,93 @@
 <div class="container-fluid">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="../index.html" target="_top">Inicio</a></li>
             <li class="breadcrumb-item active" aria-current="page">Gestión de Incidentes de Datos</li>
         </ol>
     </nav>
-    <h1 class="h2">Registro de Incidentes</h1>
-    <button class="btn btn-danger mb-3"><i class="bi bi-plus-circle me-2"></i> Registrar Nuevo Incidente</button>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h2">Registro de Incidentes</h1>
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#incidentModal">
+            <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo Incidente
+        </button>
+    </div>
+
+    <!-- Tabla de Incidentes -->
     <div class="table-responsive">
-        <table class="table">
+        <table class="table table-hover">
             <thead>
-                <tr><th>ID Incidente</th><th>Descripción</th><th>Activo Afectado</th><th>Estado</th><th>Fecha de Reporte</th><th>Asignado a</th></tr>
-            </thead>
-            <tbody>
                 <tr>
-                    <td>INC-2023-012</td>
-                    <td>Falla en la carga nocturna de ventas.</td>
-                    <td>ETL: Carga_Ventas</td>
-                    <td><span class="badge bg-warning text-dark">En Investigación</span></td>
-                    <td>2023-10-26</td>
-                    <td>Equipo de BI</td>
+                    <th>ID Incidente</th>
+                    <th>Descripción</th>
+                    <th>Activo Afectado</th>
+                    <th>Estado</th>
+                    <th>Fecha de Reporte</th>
+                    <th>Asignado a</th>
+                    <th>Acciones</th>
                 </tr>
+            </thead>
+            <tbody id="incidents-table-body">
+                <!-- Filas generadas dinámicamente -->
             </tbody>
         </table>
     </div>
+
+    <!-- Modal para Añadir/Editar Incidente -->
+    <div class="modal fade" id="incidentModal" tabindex="-1" aria-labelledby="incidentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="incidentModalLabel">Registrar Nuevo Incidente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="incident-form" class="needs-validation" novalidate>
+                        <input type="hidden" id="incident-id">
+                        <div class="mb-3">
+                            <label for="incident-description" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="incident-description" rows="3" required></textarea>
+                            <div class="invalid-feedback">La descripción es obligatoria.</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="incident-asset" class="form-label">Activo Afectado</label>
+                                <input type="text" class="form-control" id="incident-asset" required>
+                                <div class="invalid-feedback">Especifica el activo afectado.</div>
+                            </div>
+                             <div class="col-md-6 mb-3">
+                                <label for="incident-assigned" class="form-label">Asignado a</label>
+                                <input type="text" class="form-control" id="incident-assigned" required>
+                                <div class="invalid-feedback">Asigna el incidente a un equipo o persona.</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                             <div class="col-md-6 mb-3">
+                                <label for="incident-status" class="form-label">Estado</label>
+                                <select class="form-select" id="incident-status" required>
+                                    <option value="Reportado">Reportado</option>
+                                    <option value="En Investigación">En Investigación</option>
+                                    <option value="Solucionado">Solucionado</option>
+                                    <option value="Cerrado">Cerrado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="incident-date" class="form-label">Fecha de Reporte</label>
+                                <input type="date" class="form-control" id="incident-date" required>
+                                <div class="invalid-feedback">La fecha es obligatoria.</div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary" form="incident-form">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
+<script src="../js/incidentes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
