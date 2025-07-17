@@ -6,6 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const policyModalLabel = document.getElementById('policyModalLabel');
     const tableBody = document.getElementById('policies-table-body');
 
+    // Botones
+    const importBtn = document.getElementById('import-excel-btn');
+    const importInput = document.getElementById('import-excel-input');
+    const exportExcelBtn = document.getElementById('export-excel-btn');
+    const exportPdfBtn = document.getElementById('export-pdf-btn');
+
     const STORAGE_KEY = 'repositorio_politicas';
 
     // --- Renderizado ---
@@ -20,8 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         policies.forEach(policy => {
             const row = document.createElement('tr');
-            const reviewDate = new Date(policy.reviewDate);
-            const isOverdue = reviewDate < new Date();
+            const reviewDate = new Date(policy.reviewDate + 'T00:00:00'); // Asegurar que se interprete como local
+            const today = new Date();
+            today.setHours(0,0,0,0); // Ignorar la hora para la comparación
+            const isOverdue = reviewDate < today;
+
             row.innerHTML = `
                 <td>${policy.name}</td>
                 <td>${policy.regulation}</td>
@@ -61,17 +70,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (policy.id) {
             dataManager.updateItem(STORAGE_KEY, policy);
-            uiManager.showToast('Política actualizada con éxito.', 'success');
+            uiManager.showToast('Política actualizada.', 'success');
         } else {
             dataManager.addItem(STORAGE_KEY, policy);
-            uiManager.showToast('Política añadida con éxito.', 'success');
+            uiManager.showToast('Política añadida.', 'success');
         }
 
         policyModal.hide();
         renderTable();
     });
 
-    // --- Abrir Modal (Añadir vs Editar) ---
+    // --- Abrir Modal ---
     document.getElementById('policyModal').addEventListener('show.bs.modal', (e) => {
         policyForm.classList.remove('was-validated');
         policyForm.reset();
@@ -99,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const target = e.target.closest('.delete-btn');
         if (target) {
             const policyId = target.getAttribute('data-id');
-            if (confirm('¿Estás seguro de que quieres eliminar esta política?')) {
+            if (confirm('¿Seguro que quieres eliminar esta política?')) {
                 dataManager.deleteItem(STORAGE_KEY, policyId);
                 uiManager.showToast('Política eliminada.', 'danger');
                 renderTable();
@@ -110,6 +119,65 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('policyModal')._trigger = editButton;
             modalTrigger.show(editButton);
         }
+    });
+
+    // --- Importación/Exportación ---
+    importBtn.addEventListener('click', () => importInput.click());
+
+    importInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(worksheet);
+
+            let newItems = 0;
+            json.forEach(item => {
+                if (item.name && item.reviewDate) {
+                    // Excel a menudo convierte fechas a números; necesitamos reconvertirlo.
+                    if (typeof item.reviewDate === 'number') {
+                        item.reviewDate = new Date(Math.round((item.reviewDate - 25569) * 86400 * 1000)).toISOString().split('T')[0];
+                    }
+                    dataManager.addItem(STORAGE_KEY, { ...item });
+                    newItems++;
+                }
+            });
+            uiManager.showToast(`${newItems} políticas importadas.`, 'success');
+            renderTable();
+        };
+        reader.readAsArrayBuffer(file);
+        importInput.value = '';
+    });
+
+    exportExcelBtn.addEventListener('click', () => {
+        const policies = dataManager.getData(STORAGE_KEY);
+        const worksheet = XLSX.utils.json_to_sheet(policies.map(p => ({
+            name: p.name,
+            regulation: p.regulation,
+            owner: p.owner,
+            reviewDate: p.reviewDate
+        })));
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Políticas');
+        XLSX.writeFile(workbook, 'RepositorioDePoliticas.xlsx');
+    });
+
+    exportPdfBtn.addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const policies = dataManager.getData(STORAGE_KEY);
+
+        doc.text("Repositorio de Políticas", 14, 16);
+        doc.autoTable({
+            head: [['Política', 'Responsable', 'Próxima Revisión']],
+            body: policies.map(p => [p.name, p.owner, new Date(p.reviewDate + 'T00:00:00').toLocaleDateString()]),
+            startY: 20,
+        });
+        doc.save('RepositorioDePoliticas.pdf');
     });
 
     // --- Inicialización ---

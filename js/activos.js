@@ -6,6 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const assetModalLabel = document.getElementById('assetModalLabel');
     const tableBody = document.getElementById('assets-table-body');
 
+    // Botones
+    const importBtn = document.getElementById('import-excel-btn');
+    const importInput = document.getElementById('import-excel-input');
+    const exportExcelBtn = document.getElementById('export-excel-btn');
+    const exportPdfBtn = document.getElementById('export-pdf-btn');
+
     const STORAGE_KEY = 'catalogo_activos';
 
     // --- Renderizado ---
@@ -14,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tableBody.innerHTML = '';
 
         if (assets.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No hay activos registrados en el catálogo.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No hay activos registrados.</td></tr>';
             return;
         }
 
@@ -67,17 +73,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (asset.id) {
             dataManager.updateItem(STORAGE_KEY, asset);
-            uiManager.showToast('Activo actualizado con éxito.', 'success');
+            uiManager.showToast('Activo actualizado.', 'success');
         } else {
             dataManager.addItem(STORAGE_KEY, asset);
-            uiManager.showToast('Activo registrado con éxito.', 'success');
+            uiManager.showToast('Activo registrado.', 'success');
         }
 
         assetModal.hide();
         renderTable();
     });
 
-    // --- Abrir Modal (Añadir vs Editar) ---
+    // --- Abrir Modal ---
     document.getElementById('assetModal').addEventListener('show.bs.modal', (e) => {
         assetForm.classList.remove('was-validated');
         assetForm.reset();
@@ -106,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const target = e.target.closest('.delete-btn');
         if (target) {
             const assetId = target.getAttribute('data-id');
-            if (confirm('¿Estás seguro de que quieres eliminar este activo del catálogo?')) {
+            if (confirm('¿Seguro que quieres eliminar este activo?')) {
                 dataManager.deleteItem(STORAGE_KEY, assetId);
                 uiManager.showToast('Activo eliminado.', 'danger');
                 renderTable();
@@ -117,6 +123,62 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('assetModal')._trigger = editButton;
             modalTrigger.show(editButton);
         }
+    });
+
+    // --- Importación/Exportación ---
+    importBtn.addEventListener('click', () => importInput.click());
+
+    importInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(worksheet);
+
+            let newItems = 0;
+            json.forEach(item => {
+                if (item.name && item.type && item.owner) {
+                    dataManager.addItem(STORAGE_KEY, { ...item });
+                    newItems++;
+                }
+            });
+            uiManager.showToast(`${newItems} activos importados.`, 'success');
+            renderTable();
+        };
+        reader.readAsArrayBuffer(file);
+        importInput.value = '';
+    });
+
+    exportExcelBtn.addEventListener('click', () => {
+        const assets = dataManager.getData(STORAGE_KEY);
+        const worksheet = XLSX.utils.json_to_sheet(assets.map(a => ({
+            name: a.name,
+            description: a.description,
+            type: a.type,
+            classification: a.classification,
+            owner: a.owner
+        })));
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Catálogo de Activos');
+        XLSX.writeFile(workbook, 'CatalogoDeActivos.xlsx');
+    });
+
+    exportPdfBtn.addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'landscape' });
+        const assets = dataManager.getData(STORAGE_KEY);
+
+        doc.text("Catálogo de Activos de Datos", 14, 16);
+        doc.autoTable({
+            head: [['Nombre', 'Tipo', 'Clasificación', 'Owner']],
+            body: assets.map(a => [a.name, a.type, a.classification, a.owner]),
+            startY: 20,
+        });
+        doc.save('CatalogoDeActivos.pdf');
     });
 
     // --- Inicialización ---

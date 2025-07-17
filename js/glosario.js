@@ -8,6 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const noDataMessage = document.getElementById('no-data-message');
     const filterForm = document.getElementById('filter-form');
 
+    // Botones de importación/exportación
+    const importBtn = document.getElementById('import-excel-btn');
+    const importInput = document.getElementById('import-excel-input');
+    const exportExcelBtn = document.getElementById('export-excel-btn');
+    const exportPdfBtn = document.getElementById('export-pdf-btn');
+
     const STORAGE_KEY = 'glosario_terminos';
 
     // --- Funciones de Renderizado ---
@@ -15,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const filters = getFilters();
         let terms = dataManager.getData(STORAGE_KEY);
 
-        // Aplicar filtros
         terms = terms.filter(term => {
             const searchMatch = (term.name.toLowerCase().includes(filters.search) || term.definition.toLowerCase().includes(filters.search));
             const statusMatch = (filters.status === '' || term.status === filters.status);
@@ -26,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tableBody.innerHTML = '';
         if (terms.length === 0) {
             noDataMessage.classList.remove('d-none');
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No hay términos que coincidan con los filtros.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No hay términos que coincidan.</td></tr>';
             return;
         }
 
@@ -125,27 +130,86 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderTable();
             }
         } else if (e.target.closest('.edit-btn')) {
-            // El modal se abre a través de atributos data-bs-toggle, pero necesitamos
-            // asegurarnos de que el evento show.bs.modal se dispare correctamente.
             const editButton = e.target.closest('.edit-btn');
             const modalTrigger = new bootstrap.Modal(document.getElementById('termModal'));
-            document.getElementById('termModal')._trigger = editButton; // truco para pasar el relatedTarget
+            document.getElementById('termModal')._trigger = editButton;
             modalTrigger.show(editButton);
         }
     });
 
     // --- Lógica de Filtros ---
-    const getFilters = () => {
-        return {
-            search: document.getElementById('search-input').value.toLowerCase().trim(),
-            status: document.getElementById('status-filter').value,
-            domain: document.getElementById('domain-filter').value
-        };
-    };
+    const getFilters = () => ({
+        search: document.getElementById('search-input').value.toLowerCase().trim(),
+        status: document.getElementById('status-filter').value,
+        domain: document.getElementById('domain-filter').value
+    });
 
     filterForm.addEventListener('input', renderTable);
-    filterForm.addEventListener('reset', () => {
-        setTimeout(renderTable, 0); // Permite que el formulario se resetee antes de renderizar
+    filterForm.addEventListener('reset', () => setTimeout(renderTable, 0));
+
+    // --- Lógica de Importación/Exportación ---
+    importBtn.addEventListener('click', () => importInput.click());
+
+    importInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const json = XLSX.utils.sheet_to_json(worksheet);
+
+            let currentData = dataManager.getData(STORAGE_KEY);
+            let newItems = 0;
+            json.forEach(item => {
+                if (item.name) { // Solo importar si tiene nombre
+                    const newItem = {
+                        name: item.name,
+                        definition: item.definition || '',
+                        domain: item.domain || 'Sin Dominio',
+                        status: item.status || 'Pendiente',
+                        version: item.version || '1.0',
+                    };
+                    dataManager.addItem(STORAGE_KEY, newItem);
+                    newItems++;
+                }
+            });
+            uiManager.showToast(`${newItems} términos importados con éxito.`, 'success');
+            renderTable();
+        };
+        reader.readAsArrayBuffer(file);
+        importInput.value = ''; // Reset input
+    });
+
+    exportExcelBtn.addEventListener('click', () => {
+        const terms = dataManager.getData(STORAGE_KEY);
+        const worksheet = XLSX.utils.json_to_sheet(terms.map(t => ({
+            name: t.name,
+            definition: t.definition,
+            domain: t.domain,
+            status: t.status,
+            version: t.version
+        })));
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Glosario');
+        XLSX.writeFile(workbook, 'GlosarioDeNegocio.xlsx');
+    });
+
+    exportPdfBtn.addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const terms = dataManager.getData(STORAGE_KEY);
+
+        doc.text("Glosario de Negocio", 14, 16);
+        doc.autoTable({
+            head: [['Término', 'Dominio', 'Estado', 'Versión']],
+            body: terms.map(t => [t.name, t.domain, t.status, t.version]),
+            startY: 20,
+        });
+        doc.save('GlosarioDeNegocio.pdf');
     });
 
     // --- Inicialización ---

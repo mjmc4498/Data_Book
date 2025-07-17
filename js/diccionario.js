@@ -7,6 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.getElementById('assets-table-body');
     const filterForm = document.getElementById('filter-form');
 
+    // Botones
+    const importBtn = document.getElementById('import-excel-btn');
+    const importInput = document.getElementById('import-excel-input');
+    const exportExcelBtn = document.getElementById('export-excel-btn');
+    const exportPdfBtn = document.getElementById('export-pdf-btn');
+
     const STORAGE_KEY = 'diccionario_activos';
 
     // --- Renderizado ---
@@ -23,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         tableBody.innerHTML = '';
         if (assets.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No hay activos registrados o que coincidan con los filtros.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No hay activos registrados.</td></tr>';
             return;
         }
 
@@ -127,6 +133,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
     filterForm.addEventListener('input', renderTable);
     filterForm.addEventListener('reset', () => setTimeout(renderTable, 0));
+
+    // --- Importación/Exportación ---
+    importBtn.addEventListener('click', () => importInput.click());
+
+    importInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(worksheet);
+
+            let newItems = 0;
+            json.forEach(item => {
+                if (item.system && item.table && item.field && item.type) {
+                    dataManager.addItem(STORAGE_KEY, { ...item });
+                    newItems++;
+                }
+            });
+            uiManager.showToast(`${newItems} activos importados.`, 'success');
+            renderTable();
+        };
+        reader.readAsArrayBuffer(file);
+        importInput.value = '';
+    });
+
+    exportExcelBtn.addEventListener('click', () => {
+        const assets = dataManager.getData(STORAGE_KEY);
+        const worksheet = XLSX.utils.json_to_sheet(assets.map(a => ({
+            system: a.system,
+            table: a.table,
+            field: a.field,
+            type: a.type,
+            businessTerm: a.businessTerm
+        })));
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Diccionario');
+        XLSX.writeFile(workbook, 'DiccionarioDeDatos.xlsx');
+    });
+
+    exportPdfBtn.addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'landscape' });
+        const assets = dataManager.getData(STORAGE_KEY);
+
+        doc.text("Diccionario de Datos", 14, 16);
+        doc.autoTable({
+            head: [['Sistema', 'Tabla', 'Campo', 'Tipo', 'Término de Negocio']],
+            body: assets.map(a => [a.system, a.table, a.field, a.type, a.businessTerm || '']),
+            startY: 20,
+        });
+        doc.save('DiccionarioDeDatos.pdf');
+    });
 
     // --- Inicialización ---
     renderTable();

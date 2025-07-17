@@ -7,6 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.getElementById('rules-table-body');
     const filterForm = document.getElementById('filter-form');
 
+    // Botones
+    const importBtn = document.getElementById('import-excel-btn');
+    const importInput = document.getElementById('import-excel-input');
+    const exportExcelBtn = document.getElementById('export-excel-btn');
+    const exportPdfBtn = document.getElementById('export-pdf-btn');
+
     const STORAGE_KEY = 'calidad_reglas';
 
     // --- Renderizado y KPIs ---
@@ -19,20 +25,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const filters = getFilters();
         let rules = dataManager.getData(STORAGE_KEY);
 
-        // Aplicar filtros
         rules = rules.filter(rule => {
-            const searchMatch = filters.search === '' ||
-                rule.asset.toLowerCase().includes(filters.search) ||
-                rule.description.toLowerCase().includes(filters.search);
+            const searchMatch = filters.search === '' || rule.asset.toLowerCase().includes(filters.search) || rule.description.toLowerCase().includes(filters.search);
             const dimensionMatch = filters.dimension === '' || rule.dimension === filters.dimension;
             const statusMatch = filters.status === '' || rule.status === filters.status;
             return searchMatch && dimensionMatch && statusMatch;
         });
 
         tableBody.innerHTML = '';
-
         if (rules.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No hay reglas de calidad definidas.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No hay reglas definidas.</td></tr>';
             return;
         }
 
@@ -90,17 +92,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (rule.id) {
             dataManager.updateItem(STORAGE_KEY, rule);
-            uiManager.showToast('Regla actualizada con éxito.', 'success');
+            uiManager.showToast('Regla actualizada.', 'success');
         } else {
             dataManager.addItem(STORAGE_KEY, rule);
-            uiManager.showToast('Regla creada con éxito.', 'success');
+            uiManager.showToast('Regla creada.', 'success');
         }
 
         ruleModal.hide();
         render();
     });
 
-    // --- Abrir Modal (Añadir vs Editar) ---
+    // --- Abrir Modal ---
     document.getElementById('ruleModal').addEventListener('show.bs.modal', (e) => {
         ruleForm.classList.remove('was-validated');
         ruleForm.reset();
@@ -108,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const button = e.relatedTarget;
         if (button && button.classList.contains('edit-btn')) {
-            ruleModalLabel.textContent = 'Editar Regla de Calidad';
+            ruleModalLabel.textContent = 'Editar Regla';
             const ruleId = button.getAttribute('data-id');
             const rule = dataManager.getData(STORAGE_KEY).find(r => r.id == ruleId);
             if (rule) {
@@ -120,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('rule-score').value = rule.score;
             }
         } else {
-            ruleModalLabel.textContent = 'Nueva Regla de Calidad';
+            ruleModalLabel.textContent = 'Nueva Regla';
         }
     });
 
@@ -129,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const target = e.target.closest('.delete-btn');
         if (target) {
             const ruleId = target.getAttribute('data-id');
-            if (confirm('¿Estás seguro de que quieres eliminar esta regla?')) {
+            if (confirm('¿Seguro que quieres eliminar esta regla?')) {
                 dataManager.deleteItem(STORAGE_KEY, ruleId);
                 uiManager.showToast('Regla eliminada.', 'danger');
                 render();
@@ -142,20 +144,71 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Lógica de Filtros ---
-    const getFilters = () => {
-        return {
-            search: document.getElementById('search-input').value.toLowerCase().trim(),
-            dimension: document.getElementById('dimension-filter').value,
-            status: document.getElementById('status-filter').value,
-        };
-    };
-
-    filterForm.addEventListener('input', renderTable);
-    filterForm.addEventListener('reset', () => {
-        setTimeout(renderTable, 0); // Pequeño delay para asegurar que el form se resetea antes de renderizar
+    // --- Filtros ---
+    const getFilters = () => ({
+        search: document.getElementById('search-input').value.toLowerCase().trim(),
+        dimension: document.getElementById('dimension-filter').value,
+        status: document.getElementById('status-filter').value,
     });
 
+    filterForm.addEventListener('input', renderTable);
+    filterForm.addEventListener('reset', () => setTimeout(renderTable, 0));
+
+    // --- Importación/Exportación ---
+    importBtn.addEventListener('click', () => importInput.click());
+
+    importInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(worksheet);
+
+            let newItems = 0;
+            json.forEach(item => {
+                if (item.asset && item.dimension && item.status && item.score != null) {
+                    dataManager.addItem(STORAGE_KEY, { ...item });
+                    newItems++;
+                }
+            });
+            uiManager.showToast(`${newItems} reglas importadas.`, 'success');
+            render();
+        };
+        reader.readAsArrayBuffer(file);
+        importInput.value = '';
+    });
+
+    exportExcelBtn.addEventListener('click', () => {
+        const rules = dataManager.getData(STORAGE_KEY);
+        const worksheet = XLSX.utils.json_to_sheet(rules.map(r => ({
+            asset: r.asset,
+            description: r.description,
+            dimension: r.dimension,
+            status: r.status,
+            score: r.score
+        })));
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Reglas de Calidad');
+        XLSX.writeFile(workbook, 'ReglasDeCalidad.xlsx');
+    });
+
+    exportPdfBtn.addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const rules = dataManager.getData(STORAGE_KEY);
+
+        doc.text("Reglas de Calidad de Datos", 14, 16);
+        doc.autoTable({
+            head: [['Activo', 'Dimensión', 'Estado', 'Score']],
+            body: rules.map(r => [r.asset, r.dimension, r.status, `${r.score}%`]),
+            startY: 20,
+        });
+        doc.save('ReglasDeCalidad.pdf');
+    });
 
     // --- Inicialización ---
     render();
