@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const policyModal = new bootstrap.Modal(document.getElementById('policyModal'));
     const policyModalLabel = document.getElementById('policyModalLabel');
     const tableBody = document.getElementById('policies-table-body');
+    const filterForm = document.getElementById('filter-form');
 
     // Botones
     const importBtn = document.getElementById('import-excel-btn');
@@ -16,19 +17,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Renderizado ---
     const renderTable = () => {
-        const policies = dataManager.getData(STORAGE_KEY);
-        tableBody.innerHTML = '';
+        const filters = getFilters();
+        let policies = dataManager.getData(STORAGE_KEY);
 
+        policies = policies.filter(policy => {
+            const searchMatch = filters.search === '' ||
+                policy.name.toLowerCase().includes(filters.search) ||
+                policy.regulation.toLowerCase().includes(filters.search) ||
+                policy.owner.toLowerCase().includes(filters.search);
+
+            const reviewDate = new Date(policy.reviewDate + 'T00:00:00');
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const isOverdue = reviewDate < today;
+            const overdueMatch = !filters.showOverdue || isOverdue;
+
+            return searchMatch && overdueMatch;
+        });
+
+        tableBody.innerHTML = '';
         if (policies.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No hay políticas definidas.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No hay políticas que coincidan.</td></tr>';
             return;
         }
 
         policies.forEach(policy => {
             const row = document.createElement('tr');
-            const reviewDate = new Date(policy.reviewDate + 'T00:00:00'); // Asegurar que se interprete como local
+            const reviewDate = new Date(policy.reviewDate + 'T00:00:00');
             const today = new Date();
-            today.setHours(0,0,0,0); // Ignorar la hora para la comparación
+            today.setHours(0,0,0,0);
             const isOverdue = reviewDate < today;
 
             row.innerHTML = `
@@ -41,8 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </span>
                 </td>
                 <td>
-                    <button class="btn btn-sm btn-warning edit-btn" data-id="${policy.id}" data-bs-toggle="tooltip" title="Editar"><i class="bi bi-pencil"></i></button>
-                    <button class="btn btn-sm btn-danger delete-btn" data-id="${policy.id}" data-bs-toggle="tooltip" title="Eliminar"><i class="bi bi-trash"></i></button>
+                    <button class="btn btn-sm btn-warning edit-btn" data-id="${policy.id}"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-danger delete-btn" data-id="${policy.id}"><i class="bi bi-trash"></i></button>
                 </td>
             `;
             tableBody.appendChild(row);
@@ -50,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         uiManager.initializeTooltips();
     };
 
-    // --- Formulario (Crear/Editar) ---
+    // --- Formulario ---
     policyForm.addEventListener('submit', (e) => {
         e.preventDefault();
         if (!policyForm.checkValidity()) {
@@ -68,14 +85,10 @@ document.addEventListener('DOMContentLoaded', () => {
             reviewDate: document.getElementById('policy-review-date').value,
         };
 
-        if (policy.id) {
-            dataManager.updateItem(STORAGE_KEY, policy);
-            uiManager.showToast('Política actualizada.', 'success');
-        } else {
-            dataManager.addItem(STORAGE_KEY, policy);
-            uiManager.showToast('Política añadida.', 'success');
-        }
+        if (policy.id) dataManager.updateItem(STORAGE_KEY, policy);
+        else dataManager.addItem(STORAGE_KEY, policy);
 
+        uiManager.showToast('Política guardada.', 'success');
         policyModal.hide();
         renderTable();
     });
@@ -103,42 +116,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Eliminación ---
+    // --- Delegación de eventos ---
     tableBody.addEventListener('click', (e) => {
-        const target = e.target.closest('.delete-btn');
-        if (target) {
-            const policyId = target.getAttribute('data-id');
+        const editBtn = e.target.closest('.edit-btn');
+        const deleteBtn = e.target.closest('.delete-btn');
+        if (editBtn) {
+            const modalTrigger = new bootstrap.Modal(document.getElementById('policyModal'));
+            document.getElementById('policyModal')._trigger = editBtn;
+            modalTrigger.show(editBtn);
+        } else if (deleteBtn) {
+            const policyId = deleteBtn.getAttribute('data-id');
             if (confirm('¿Seguro que quieres eliminar esta política?')) {
                 dataManager.deleteItem(STORAGE_KEY, policyId);
                 uiManager.showToast('Política eliminada.', 'danger');
                 renderTable();
             }
-        } else if (e.target.closest('.edit-btn')) {
-            const editButton = e.target.closest('.edit-btn');
-            const modalTrigger = new bootstrap.Modal(document.getElementById('policyModal'));
-            document.getElementById('policyModal')._trigger = editButton;
-            modalTrigger.show(editButton);
         }
     });
 
+    // --- Filtros ---
+    const getFilters = () => ({
+        search: document.getElementById('search-input').value.toLowerCase().trim(),
+        showOverdue: document.getElementById('overdue-filter').checked
+    });
+
+    filterForm.addEventListener('input', renderTable);
+    filterForm.addEventListener('reset', () => setTimeout(renderTable, 0));
+
     // --- Importación/Exportación ---
     importBtn.addEventListener('click', () => importInput.click());
-
     importInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (event) => {
             const data = new Uint8Array(event.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
             const worksheet = workbook.Sheets[workbook.SheetNames[0]];
             const json = XLSX.utils.sheet_to_json(worksheet);
-
             let newItems = 0;
             json.forEach(item => {
                 if (item.name && item.reviewDate) {
-                    // Excel a menudo convierte fechas a números; necesitamos reconvertirlo.
                     if (typeof item.reviewDate === 'number') {
                         item.reviewDate = new Date(Math.round((item.reviewDate - 25569) * 86400 * 1000)).toISOString().split('T')[0];
                     }
@@ -155,12 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     exportExcelBtn.addEventListener('click', () => {
         const policies = dataManager.getData(STORAGE_KEY);
-        const worksheet = XLSX.utils.json_to_sheet(policies.map(p => ({
-            name: p.name,
-            regulation: p.regulation,
-            owner: p.owner,
-            reviewDate: p.reviewDate
-        })));
+        const worksheet = XLSX.utils.json_to_sheet(policies.map(p => ({ name: p.name, regulation: p.regulation, owner: p.owner, reviewDate: p.reviewDate })));
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Políticas');
         XLSX.writeFile(workbook, 'RepositorioDePoliticas.xlsx');
@@ -170,7 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         const policies = dataManager.getData(STORAGE_KEY);
-
         doc.text("Repositorio de Políticas", 14, 16);
         doc.autoTable({
             head: [['Política', 'Responsable', 'Próxima Revisión']],

@@ -18,25 +18,27 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h2">Catálogo de Roles y Permisos</h1>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#roleModal">
-            <i class="bi bi-plus-circle me-2"></i> Añadir Rol
-        </button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#roleModal"><i class="bi bi-plus-circle me-2"></i> Añadir Rol</button>
+    </div>
+
+    <!-- Filtro -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form id="filter-form" class="row g-3">
+                <div class="col-md-12">
+                    <input type="text" class="form-control" id="search-input" placeholder="Buscar por rol, descripción o permisos...">
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Tabla de Roles -->
     <div class="table-responsive">
         <table class="table table-hover">
             <thead>
-                <tr>
-                    <th>Rol</th>
-                    <th>Descripción</th>
-                    <th>Permisos Clave</th>
-                    <th>Acciones</th>
-                </tr>
+                <tr><th>Rol</th><th>Descripción</th><th>Permisos Clave</th><th>Acciones</th></tr>
             </thead>
-            <tbody id="roles-table-body">
-                <!-- Filas generadas por JS -->
-            </tbody>
+            <tbody id="roles-table-body"><!-- Filas generadas por JS --></tbody>
         </table>
     </div>
 
@@ -44,34 +46,16 @@
     <div class="modal fade" id="roleModal" tabindex="-1" aria-labelledby="roleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="roleModalLabel">Añadir Nuevo Rol</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
+                <div class="modal-header"><h5 class="modal-title" id="roleModalLabel">Añadir Rol</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
                     <form id="role-form" class="needs-validation" novalidate>
                         <input type="hidden" id="role-id">
-                        <div class="mb-3">
-                            <label for="role-name" class="form-label">Nombre del Rol</label>
-                            <input type="text" class="form-control" id="role-name" required>
-                            <div class="invalid-feedback">El nombre es obligatorio.</div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="role-description" class="form-label">Descripción</label>
-                            <textarea class="form-control" id="role-description" rows="2" required></textarea>
-                            <div class="invalid-feedback">La descripción es obligatoria.</div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="role-permissions" class="form-label">Permisos</label>
-                            <textarea class="form-control" id="role-permissions" rows="4" placeholder="Describa los permisos. Ej: LECTURA en CRM.CLIENTES, ESCRITURA en VENTAS.PRONOSTICOS" required></textarea>
-                            <div class="invalid-feedback">Debe especificar al menos un permiso.</div>
-                        </div>
+                        <div class="mb-3"><label for="role-name" class="form-label">Nombre del Rol</label><input type="text" class="form-control" id="role-name" required><div class="invalid-feedback">El nombre es obligatorio.</div></div>
+                        <div class="mb-3"><label for="role-description" class="form-label">Descripción</label><textarea class="form-control" id="role-description" rows="2" required></textarea><div class="invalid-feedback">La descripción es obligatoria.</div></div>
+                        <div class="mb-3"><label for="role-permissions" class="form-label">Permisos</label><textarea class="form-control" id="role-permissions" rows="4" placeholder="Describa los permisos..." required></textarea><div class="invalid-feedback">Debe especificar permisos.</div></div>
                     </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="submit" class="btn btn-primary" form="role-form">Guardar Rol</button>
-                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button><button type="submit" class="btn btn-primary" form="role-form">Guardar Rol</button></div>
             </div>
         </div>
     </div>

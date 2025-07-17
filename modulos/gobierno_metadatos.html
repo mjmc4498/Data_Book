@@ -17,49 +17,34 @@
     </nav>
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h2">Flujos de Aprobación</h1>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#flowModal">
-            <i class="bi bi-plus-circle me-2"></i> Añadir Flujo
-        </button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#flowModal"><i class="bi bi-plus-circle me-2"></i> Añadir Flujo</button>
+    </div>
+
+    <!-- Filtro -->
+    <div class="mb-3">
+        <input type="text" id="search-input" class="form-control" placeholder="Buscar flujo por nombre o descripción...">
     </div>
 
     <div class="accordion" id="flows-accordion">
         <!-- Flujos generados por JS -->
     </div>
-    <p id="no-flows-message" class="text-center text-muted mt-4 d-none">No hay flujos de aprobación definidos.</p>
+    <p id="no-flows-message" class="text-center text-muted mt-4 d-none">No hay flujos definidos.</p>
 
 
     <!-- Modal para Añadir/Editar Flujo -->
     <div class="modal fade" id="flowModal" tabindex="-1" aria-labelledby="flowModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="flowModalLabel">Añadir Nuevo Flujo</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
+                <div class="modal-header"><h5 class="modal-title" id="flowModalLabel">Añadir Flujo</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
                     <form id="flow-form" class="needs-validation" novalidate>
                         <input type="hidden" id="flow-id">
-                        <div class="mb-3">
-                            <label for="flow-name" class="form-label">Nombre del Flujo</label>
-                            <input type="text" class="form-control" id="flow-name" placeholder="Ej: Aprobación de Término de Negocio" required>
-                            <div class="invalid-feedback">El nombre es obligatorio.</div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="flow-description" class="form-label">Descripción</label>
-                            <textarea class="form-control" id="flow-description" rows="2" required></textarea>
-                            <div class="invalid-feedback">La descripción es obligatoria.</div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="flow-steps" class="form-label">Pasos del Flujo (uno por línea)</label>
-                            <textarea class="form-control" id="flow-steps" rows="4" placeholder="1. Creación por Analista&#10;2. Revisión por Data Steward&#10;3. Aprobación por Owner" required></textarea>
-                            <div class="invalid-feedback">Debe definir al menos un paso.</div>
-                        </div>
+                        <div class="mb-3"><label for="flow-name" class="form-label">Nombre</label><input type="text" class="form-control" id="flow-name" placeholder="Ej: Aprobación de Término" required><div class="invalid-feedback">El nombre es obligatorio.</div></div>
+                        <div class="mb-3"><label for="flow-description" class="form-label">Descripción</label><textarea class="form-control" id="flow-description" rows="2" required></textarea><div class="invalid-feedback">La descripción es obligatoria.</div></div>
+                        <div class="mb-3"><label for="flow-steps" class="form-label">Pasos (uno por línea)</label><textarea class="form-control" id="flow-steps" rows="4" placeholder="1. Creación&#10;2. Revisión&#10;3. Aprobación" required></textarea><div class="invalid-feedback">Debe definir al menos un paso.</div></div>
                     </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="submit" class="btn btn-primary" form="flow-form">Guardar Flujo</button>
-                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button><button type="submit" class="btn btn-primary" form="flow-form">Guardar</button></div>
             </div>
         </div>
     </div>

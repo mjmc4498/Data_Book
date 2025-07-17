@@ -5,16 +5,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const incidentModal = new bootstrap.Modal(document.getElementById('incidentModal'));
     const incidentModalLabel = document.getElementById('incidentModalLabel');
     const tableBody = document.getElementById('incidents-table-body');
+    const filterForm = document.getElementById('filter-form');
 
     const STORAGE_KEY = 'gestion_incidentes';
 
     // --- Renderizado ---
     const renderTable = () => {
-        const incidents = dataManager.getData(STORAGE_KEY);
-        tableBody.innerHTML = '';
+        const filters = getFilters();
+        let incidents = dataManager.getData(STORAGE_KEY);
 
+        incidents = incidents.filter(incident => {
+            const searchMatch = filters.search === '' ||
+                incident.description.toLowerCase().includes(filters.search) ||
+                incident.asset.toLowerCase().includes(filters.search);
+
+            const statusMatch = filters.status === '' || incident.status === filters.status;
+
+            const incidentDate = new Date(incident.date + 'T00:00:00');
+            const startDateMatch = !filters.startDate || incidentDate >= filters.startDate;
+            const endDateMatch = !filters.endDate || incidentDate <= filters.endDate;
+
+            return searchMatch && statusMatch && startDateMatch && endDateMatch;
+        });
+
+        tableBody.innerHTML = '';
         if (incidents.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No hay incidentes registrados.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No hay incidentes que coincidan.</td></tr>';
             return;
         }
 
@@ -26,16 +42,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${incident.description}</td>
                 <td>${incident.asset}</td>
                 <td><span class="badge bg-${getStatusColor(incident.status)}">${incident.status}</span></td>
-                <td>${new Date(incident.date).toLocaleDateString()}</td>
+                <td>${new Date(incident.date + 'T00:00:00').toLocaleDateString()}</td>
                 <td>${incident.assigned}</td>
                 <td>
-                    <button class="btn btn-sm btn-warning edit-btn" data-id="${incident.id}" data-bs-toggle="tooltip" title="Editar"><i class="bi bi-pencil"></i></button>
-                    <button class="btn btn-sm btn-danger delete-btn" data-id="${incident.id}" data-bs-toggle="tooltip" title="Eliminar"><i class="bi bi-trash"></i></button>
+                    <button class="btn btn-sm btn-warning edit-btn" data-id="${incident.id}"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-danger delete-btn" data-id="${incident.id}"><i class="bi bi-trash"></i></button>
                 </td>
             `;
             tableBody.appendChild(row);
         });
-        uiManager.initializeTooltips();
     };
 
     const getStatusColor = (status) => {
@@ -69,22 +84,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (incident.id) {
             dataManager.updateItem(STORAGE_KEY, incident);
-            uiManager.showToast('Incidente actualizado con éxito.', 'success');
+            uiManager.showToast('Incidente actualizado.', 'success');
         } else {
             dataManager.addItem(STORAGE_KEY, incident);
-            uiManager.showToast('Incidente registrado con éxito.', 'success');
+            uiManager.showToast('Incidente registrado.', 'success');
         }
 
         incidentModal.hide();
         renderTable();
     });
 
-    // --- Abrir Modal (Añadir vs Editar) ---
+    // --- Abrir Modal ---
     document.getElementById('incidentModal').addEventListener('show.bs.modal', (e) => {
         incidentForm.classList.remove('was-validated');
         incidentForm.reset();
         document.getElementById('incident-id').value = '';
-        document.getElementById('incident-date').valueAsDate = new Date(); // Poner fecha actual por defecto
+        document.getElementById('incident-date').valueAsDate = new Date();
 
         const button = e.relatedTarget;
         if (button && button.classList.contains('edit-btn')) {
@@ -104,23 +119,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Eliminación ---
+    // --- Eliminación y Edición (delegación de eventos) ---
     tableBody.addEventListener('click', (e) => {
-        const target = e.target.closest('.delete-btn');
-        if (target) {
-            const incidentId = target.getAttribute('data-id');
-            if (confirm('¿Estás seguro de que quieres eliminar este incidente?')) {
+        const editBtn = e.target.closest('.edit-btn');
+        const deleteBtn = e.target.closest('.delete-btn');
+        if (editBtn) {
+            const incidentId = editBtn.getAttribute('data-id');
+            // Necesario para pasar el 'relatedTarget' al modal
+            const modalTrigger = new bootstrap.Modal(document.getElementById('incidentModal'));
+            document.getElementById('incidentModal')._trigger = editBtn;
+            modalTrigger.show(editBtn);
+        } else if (deleteBtn) {
+            const incidentId = deleteBtn.getAttribute('data-id');
+            if (confirm('¿Seguro que quieres eliminar este incidente?')) {
                 dataManager.deleteItem(STORAGE_KEY, incidentId);
                 uiManager.showToast('Incidente eliminado.', 'danger');
                 renderTable();
             }
-        } else if (e.target.closest('.edit-btn')) {
-            const editButton = e.target.closest('.edit-btn');
-            const modalTrigger = new bootstrap.Modal(document.getElementById('incidentModal'));
-            document.getElementById('incidentModal')._trigger = editButton;
-            modalTrigger.show(editButton);
         }
     });
+
+    // --- Filtros ---
+    const getFilters = () => ({
+        search: document.getElementById('search-input').value.toLowerCase().trim(),
+        status: document.getElementById('status-filter').value,
+        startDate: document.getElementById('start-date-filter').valueAsDate,
+        endDate: document.getElementById('end-date-filter').valueAsDate
+    });
+
+    filterForm.addEventListener('input', renderTable);
+    filterForm.addEventListener('reset', () => setTimeout(renderTable, 0));
 
     // --- Inicialización ---
     renderTable();
