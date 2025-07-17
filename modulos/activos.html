@@ -11,46 +11,64 @@
 <div class="container-fluid">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="../index.html" target="_top">Inicio</a></li>
             <li class="breadcrumb-item active" aria-current="page">Catálogo de Activos de Datos</li>
         </ol>
     </nav>
     <h1 class="h2">Catálogo de Activos de Datos</h1>
+    <p>Explore todos los activos de datos registrados en la organización.</p>
+
     <div class="row">
         <div class="col-md-3">
             <!-- Filtros y facetas -->
-            <h5>Filtros</h5>
-            <div class="list-group">
-              <a href="#" class="list-group-item list-group-item-action">
-                <i class="bi bi-database me-2"></i> Bases de Datos
-              </a>
-              <a href="#" class="list-group-item list-group-item-action"><i class="bi bi-file-earmark-text me-2"></i> Archivos (CSV, Parquet)</a>
-              <a href="#" class="list-group-item list-group-item-action"><i class="bi bi-bar-chart-line me-2"></i> Reportes BI</a>
-              <a href="#" class="list-group-item list-group-item-action"><i class="bi bi-plug me-2"></i> APIs</a>
-            </div>
+            <form id="filter-form">
+                <div class="mb-3">
+                    <label for="search-input" class="form-label fw-bold">Buscar</label>
+                    <input type="text" id="search-input" class="form-control" placeholder="Buscar por nombre o descripción...">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Tipo de Activo</label>
+                    <div class="list-group" id="asset-type-filter">
+                        <label class="list-group-item">
+                            <input class="form-check-input me-1" type="checkbox" value="Tabla"> Tabla de Base de Datos
+                        </label>
+                        <label class="list-group-item">
+                            <input class="form-check-input me-1" type="checkbox" value="Reporte"> Reporte BI
+                        </label>
+                        <label class="list-group-item">
+                            <input class="form-check-input me-1" type="checkbox" value="API"> API
+                        </label>
+                    </div>
+                </div>
+                 <div class="mb-3">
+                    <label class="form-label fw-bold">Clasificación</label>
+                    <div class="list-group" id="classification-filter">
+                        <label class="list-group-item">
+                            <input class="form-check-input me-1" type="checkbox" value="Público"> Público
+                        </label>
+                        <label class="list-group-item">
+                            <input class="form-check-input me-1" type="checkbox" value="Interno"> Interno
+                        </label>
+                         <label class="list-group-item">
+                            <input class="form-check-input me-1" type="checkbox" value="Confidencial"> Confidencial
+                        </label>
+                    </div>
+                </div>
+                 <button type="reset" class="btn btn-outline-secondary w-100">Limpiar Filtros</button>
+            </form>
         </div>
         <div class="col-md-9">
+            <h5 id="results-count" class="mb-3">Mostrando 0 activos</h5>
             <!-- Resultados -->
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Tabla: DWH.DIM_CLIENTE</h5>
-                    <p class="card-text">Dimensión de clientes consolidada en el Data Warehouse.</p>
-                    <span class="badge bg-secondary">Data Warehouse</span>
-                    <span class="badge bg-info">Clasificación: Confidencial</span>
-                    <p class="mt-2"><strong>Owner:</strong> Juan Pérez</p>
-                </div>
+            <div id="assets-container">
+                <!-- Tarjetas de activos generadas por JS -->
             </div>
-             <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Reporte: Ventas Mensuales</h5>
-                    <p class="card-text">Reporte de Power BI con el resumen de ventas del último mes.</p>
-                    <span class="badge bg-primary">Power BI</span>
-                    <span class="badge bg-success">Clasificación: Interno</span>
-                     <p class="mt-2"><strong>Owner:</strong> Ana Gómez</p>
-                </div>
-            </div>
+            <p id="no-results-message" class="text-center text-muted d-none">No se encontraron activos que coincidan con los filtros.</p>
         </div>
     </div>
 </div>
+
+<script src="../js/activos.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

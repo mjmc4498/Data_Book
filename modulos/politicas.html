@@ -11,28 +11,79 @@
 <div class="container-fluid">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="../index.html" target="_top">Inicio</a></li>
             <li class="breadcrumb-item active" aria-current="page">Gestión de Políticas y Normativas</li>
         </ol>
     </nav>
-    <h1 class="h2">Repositorio de Políticas</h1>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h2">Repositorio de Políticas</h1>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#policyModal">
+            <i class="bi bi-plus-circle me-2"></i> Añadir Política
+        </button>
+    </div>
 
     <div class="table-responsive">
-        <table class="table">
+        <table class="table table-hover">
             <thead>
-                <tr><th>Política</th><th>Normativa Asociada</th><th>Responsable</th><th>Próxima Revisión</th><th>Acciones</th></tr>
-            </thead>
-            <tbody>
                 <tr>
-                    <td>Política de Retención de Datos de Clientes</td>
-                    <td>GDPR, Art. 5</td>
-                    <td>Oficial de Privacidad</td>
-                    <td>2024-12-31</td>
-                    <td><a href="#" class="btn btn-sm btn-outline-primary">Ver Documento</a></td>
+                    <th>Política</th>
+                    <th>Normativa Asociada</th>
+                    <th>Responsable</th>
+                    <th>Próxima Revisión</th>
+                    <th>Acciones</th>
                 </tr>
+            </thead>
+            <tbody id="policies-table-body">
+                <!-- Filas generadas por JS -->
             </tbody>
         </table>
     </div>
+
+    <!-- Modal para Añadir/Editar Política -->
+    <div class="modal fade" id="policyModal" tabindex="-1" aria-labelledby="policyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="policyModalLabel">Añadir Nueva Política</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="policy-form" class="needs-validation" novalidate>
+                        <input type="hidden" id="policy-id">
+                        <div class="mb-3">
+                            <label for="policy-name" class="form-label">Nombre de la Política</label>
+                            <input type="text" class="form-control" id="policy-name" required>
+                            <div class="invalid-feedback">El nombre es obligatorio.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="policy-regulation" class="form-label">Normativa Asociada</label>
+                            <input type="text" class="form-control" id="policy-regulation" placeholder="Ej: GDPR, Art. 5" required>
+                            <div class="invalid-feedback">La normativa es obligatoria.</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="policy-owner" class="form-label">Responsable</label>
+                                <input type="text" class="form-control" id="policy-owner" required>
+                                <div class="invalid-feedback">El responsable es obligatorio.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="policy-review-date" class="form-label">Próxima Revisión</label>
+                                <input type="date" class="form-control" id="policy-review-date" required>
+                                <div class="invalid-feedback">La fecha de revisión es obligatoria.</div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary" form="policy-form">Guardar Política</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script src="../js/politicas.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
