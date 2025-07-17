@@ -1,82 +1,39 @@
 document.addEventListener('DOMContentLoaded', () => {
     const dataManager = window.parent.dataManager;
     const uiManager = window.parent.uiManager;
-    const assetsContainer = document.getElementById('assets-container');
-    const filterForm = document.getElementById('filter-form');
-    const noResultsMessage = document.getElementById('no-results-message');
-    const resultsCount = document.getElementById('results-count');
+    const assetForm = document.getElementById('asset-form');
+    const assetModal = new bootstrap.Modal(document.getElementById('assetModal'));
+    const assetModalLabel = document.getElementById('assetModalLabel');
+    const tableBody = document.getElementById('assets-table-body');
 
-    // --- Simulación de fuentes de datos ---
-    const getUnifiedAssets = () => {
-        const assets = [];
-
-        // 1. Activos desde el Diccionario de Datos (Tablas)
-        const dictionaryAssets = dataManager.getData('diccionario_activos');
-        dictionaryAssets.forEach(da => {
-            assets.push({
-                type: 'Tabla',
-                name: `${da.system}.${da.table}.${da.field}`,
-                description: `Campo del diccionario de datos. Tipo: ${da.type}.`,
-                classification: 'Confidencial', // Simulación
-                owner: 'Equipo de Datos', // Simulación
-            });
-        });
-
-        // 2. Activos simulados (Reportes y APIs)
-        const simulatedAssets = [
-            { type: 'Reporte', name: 'Ventas Q3 2023', description: 'Reporte de Power BI sobre las ventas del tercer trimestre.', classification: 'Interno', owner: 'Ana Gómez' },
-            { type: 'Reporte', name: 'Análisis de Carrito Abandonado', description: 'Dashboard en Tableau.', classification: 'Interno', owner: 'Carlos Ruiz' },
-            { type: 'API', name: 'API de Clientes', description: 'API REST para obtener y actualizar datos de clientes.', classification: 'Confidencial', owner: 'Equipo de Desarrollo' },
-             { type: 'Tabla', name: 'MARKETING.CAMPAÑAS', description: 'Tabla de campañas de marketing.', classification: 'Interno', owner: 'Equipo de Marketing' },
-        ];
-
-        return assets.concat(simulatedAssets);
-    };
+    const STORAGE_KEY = 'catalogo_activos';
 
     // --- Renderizado ---
-    const renderAssets = () => {
-        const filters = getFilters();
-        let allAssets = getUnifiedAssets();
+    const renderTable = () => {
+        const assets = dataManager.getData(STORAGE_KEY);
+        tableBody.innerHTML = '';
 
-        const filteredAssets = allAssets.filter(asset => {
-            const searchMatch = filters.search === '' ||
-                asset.name.toLowerCase().includes(filters.search) ||
-                asset.description.toLowerCase().includes(filters.search);
-
-            const typeMatch = filters.types.length === 0 || filters.types.includes(asset.type);
-
-            const classificationMatch = filters.classifications.length === 0 || filters.classifications.includes(asset.classification);
-
-            return searchMatch && typeMatch && classificationMatch;
-        });
-
-        assetsContainer.innerHTML = '';
-        resultsCount.textContent = `Mostrando ${filteredAssets.length} activos`;
-
-        if (filteredAssets.length === 0) {
-            noResultsMessage.classList.remove('d-none');
+        if (assets.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No hay activos registrados en el catálogo.</td></tr>';
             return;
         }
 
-        noResultsMessage.classList.add('d-none');
-
-        filteredAssets.forEach(asset => {
-            const card = document.createElement('div');
-            card.className = 'card mb-3';
-            card.innerHTML = `
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="${getIconForType(asset.type)} me-2"></i>
-                        ${asset.name}
-                    </h5>
-                    <p class="card-text">${asset.description}</p>
-                    <span class="badge bg-secondary">${asset.type}</span>
-                    <span class="badge bg-info text-dark">${asset.classification}</span>
-                    <p class="mt-2 mb-0"><strong>Owner:</strong> ${asset.owner}</p>
-                </div>
+        assets.forEach(asset => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><i class="${getIconForType(asset.type)} me-2"></i>${asset.name}</td>
+                <td>${asset.description}</td>
+                <td><span class="badge bg-secondary">${asset.type}</span></td>
+                <td><span class="badge bg-info text-dark">${asset.classification}</span></td>
+                <td>${asset.owner}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning edit-btn" data-id="${asset.id}" data-bs-toggle="tooltip" title="Editar"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-danger delete-btn" data-id="${asset.id}" data-bs-toggle="tooltip" title="Eliminar"><i class="bi bi-trash"></i></button>
+                </td>
             `;
-            assetsContainer.appendChild(card);
+            tableBody.appendChild(row);
         });
+        uiManager.initializeTooltips();
     };
 
     const getIconForType = (type) => {
@@ -84,25 +41,84 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'Tabla': return 'bi bi-table';
             case 'Reporte': return 'bi bi-bar-chart-line-fill';
             case 'API': return 'bi bi-plug-fill';
+            case 'Archivo': return 'bi bi-file-earmark-text';
             default: return 'bi bi-box-seam';
         }
     };
 
-    // --- Lógica de Filtros ---
-    const getFilters = () => {
-        const search = document.getElementById('search-input').value.toLowerCase().trim();
+    // --- Formulario (Crear/Editar) ---
+    assetForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!assetForm.checkValidity()) {
+            e.stopPropagation();
+            assetForm.classList.add('was-validated');
+            return;
+        }
 
-        const types = Array.from(document.querySelectorAll('#asset-type-filter input:checked')).map(el => el.value);
+        const assetId = document.getElementById('asset-id').value;
+        const asset = {
+            id: assetId ? parseInt(assetId) : null,
+            name: document.getElementById('asset-name').value,
+            description: document.getElementById('asset-description').value,
+            type: document.getElementById('asset-type').value,
+            classification: document.getElementById('asset-classification').value,
+            owner: document.getElementById('asset-owner').value,
+        };
 
-        const classifications = Array.from(document.querySelectorAll('#classification-filter input:checked')).map(el => el.value);
+        if (asset.id) {
+            dataManager.updateItem(STORAGE_KEY, asset);
+            uiManager.showToast('Activo actualizado con éxito.', 'success');
+        } else {
+            dataManager.addItem(STORAGE_KEY, asset);
+            uiManager.showToast('Activo registrado con éxito.', 'success');
+        }
 
-        return { search, types, classifications };
-    };
+        assetModal.hide();
+        renderTable();
+    });
 
-    filterForm.addEventListener('input', renderAssets);
-    filterForm.addEventListener('reset', () => setTimeout(renderAssets, 0));
+    // --- Abrir Modal (Añadir vs Editar) ---
+    document.getElementById('assetModal').addEventListener('show.bs.modal', (e) => {
+        assetForm.classList.remove('was-validated');
+        assetForm.reset();
+        document.getElementById('asset-id').value = '';
 
+        const button = e.relatedTarget;
+        if (button && button.classList.contains('edit-btn')) {
+            assetModalLabel.textContent = 'Editar Activo';
+            const assetId = button.getAttribute('data-id');
+            const asset = dataManager.getData(STORAGE_KEY).find(a => a.id == assetId);
+            if (asset) {
+                document.getElementById('asset-id').value = asset.id;
+                document.getElementById('asset-name').value = asset.name;
+                document.getElementById('asset-description').value = asset.description;
+                document.getElementById('asset-type').value = asset.type;
+                document.getElementById('asset-classification').value = asset.classification;
+                document.getElementById('asset-owner').value = asset.owner;
+            }
+        } else {
+            assetModalLabel.textContent = 'Registrar Nuevo Activo';
+        }
+    });
+
+    // --- Eliminación ---
+    tableBody.addEventListener('click', (e) => {
+        const target = e.target.closest('.delete-btn');
+        if (target) {
+            const assetId = target.getAttribute('data-id');
+            if (confirm('¿Estás seguro de que quieres eliminar este activo del catálogo?')) {
+                dataManager.deleteItem(STORAGE_KEY, assetId);
+                uiManager.showToast('Activo eliminado.', 'danger');
+                renderTable();
+            }
+        } else if (e.target.closest('.edit-btn')) {
+            const editButton = e.target.closest('.edit-btn');
+            const modalTrigger = new bootstrap.Modal(document.getElementById('assetModal'));
+            document.getElementById('assetModal')._trigger = editButton;
+            modalTrigger.show(editButton);
+        }
+    });
 
     // --- Inicialización ---
-    renderAssets();
+    renderTable();
 });

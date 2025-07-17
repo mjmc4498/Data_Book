@@ -15,55 +15,88 @@
             <li class="breadcrumb-item active" aria-current="page">Catálogo de Activos de Datos</li>
         </ol>
     </nav>
-    <h1 class="h2">Catálogo de Activos de Datos</h1>
-    <p>Explore todos los activos de datos registrados en la organización.</p>
 
-    <div class="row">
-        <div class="col-md-3">
-            <!-- Filtros y facetas -->
-            <form id="filter-form">
-                <div class="mb-3">
-                    <label for="search-input" class="form-label fw-bold">Buscar</label>
-                    <input type="text" id="search-input" class="form-control" placeholder="Buscar por nombre o descripción...">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h2">Catálogo de Activos de Datos</h1>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#assetModal">
+            <i class="bi bi-plus-circle me-2"></i> Registrar Nuevo Activo
+        </button>
+    </div>
+
+    <!-- Filtros (próximamente) -->
+
+    <!-- Tabla de Activos -->
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Nombre del Activo</th>
+                    <th>Descripción</th>
+                    <th>Tipo</th>
+                    <th>Clasificación</th>
+                    <th>Owner</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="assets-table-body">
+                <!-- Filas generadas por JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal para Añadir/Editar Activo -->
+    <div class="modal fade" id="assetModal" tabindex="-1" aria-labelledby="assetModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="assetModalLabel">Registrar Nuevo Activo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Tipo de Activo</label>
-                    <div class="list-group" id="asset-type-filter">
-                        <label class="list-group-item">
-                            <input class="form-check-input me-1" type="checkbox" value="Tabla"> Tabla de Base de Datos
-                        </label>
-                        <label class="list-group-item">
-                            <input class="form-check-input me-1" type="checkbox" value="Reporte"> Reporte BI
-                        </label>
-                        <label class="list-group-item">
-                            <input class="form-check-input me-1" type="checkbox" value="API"> API
-                        </label>
-                    </div>
+                <div class="modal-body">
+                    <form id="asset-form" class="needs-validation" novalidate>
+                        <input type="hidden" id="asset-id">
+                        <div class="mb-3">
+                            <label for="asset-name" class="form-label">Nombre del Activo</label>
+                            <input type="text" class="form-control" id="asset-name" required>
+                            <div class="invalid-feedback">El nombre es obligatorio.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="asset-description" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="asset-description" rows="3" required></textarea>
+                            <div class="invalid-feedback">La descripción es obligatoria.</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="asset-type" class="form-label">Tipo de Activo</label>
+                                <select class="form-select" id="asset-type" required>
+                                    <option value="Tabla">Tabla</option>
+                                    <option value="Reporte">Reporte</option>
+                                    <option value="API">API</option>
+                                    <option value="Archivo">Archivo</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="asset-classification" class="form-label">Clasificación</label>
+                                <select class="form-select" id="asset-classification" required>
+                                    <option value="Público">Público</option>
+                                    <option value="Interno">Interno</option>
+                                    <option value="Confidencial">Confidencial</option>
+                                    <option value="Restringido">Restringido</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="asset-owner" class="form-label">Owner</label>
+                            <input type="text" class="form-control" id="asset-owner" required>
+                            <div class="invalid-feedback">El owner es obligatorio.</div>
+                        </div>
+                    </form>
                 </div>
-                 <div class="mb-3">
-                    <label class="form-label fw-bold">Clasificación</label>
-                    <div class="list-group" id="classification-filter">
-                        <label class="list-group-item">
-                            <input class="form-check-input me-1" type="checkbox" value="Público"> Público
-                        </label>
-                        <label class="list-group-item">
-                            <input class="form-check-input me-1" type="checkbox" value="Interno"> Interno
-                        </label>
-                         <label class="list-group-item">
-                            <input class="form-check-input me-1" type="checkbox" value="Confidencial"> Confidencial
-                        </label>
-                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary" form="asset-form">Guardar Activo</button>
                 </div>
-                 <button type="reset" class="btn btn-outline-secondary w-100">Limpiar Filtros</button>
-            </form>
-        </div>
-        <div class="col-md-9">
-            <h5 id="results-count" class="mb-3">Mostrando 0 activos</h5>
-            <!-- Resultados -->
-            <div id="assets-container">
-                <!-- Tarjetas de activos generadas por JS -->
             </div>
-            <p id="no-results-message" class="text-center text-muted d-none">No se encontraron activos que coincidan con los filtros.</p>
         </div>
     </div>
 </div>
